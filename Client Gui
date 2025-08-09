@@ -1,0 +1,83 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+
+local RemoteFolder = ReplicatedStorage:WaitForChild("AdminRemotes")
+
+local ShutdownServerEvent = RemoteFolder:WaitForChild("ShutdownServer")
+local KickPlayerEvent = RemoteFolder:WaitForChild("KickPlayer")
+local BanPlayerEvent = RemoteFolder:WaitForChild("BanPlayer")
+local KillPlayerEvent = RemoteFolder:WaitForChild("KillPlayer")
+local JailPlayerEvent = RemoteFolder:WaitForChild("JailPlayer")
+local GiveItemEvent = RemoteFolder:WaitForChild("GiveItem")
+local KickAllEvent = RemoteFolder:WaitForChild("KickAll")
+local BanAllEvent = RemoteFolder:WaitForChild("BanAll")
+local KillAllEvent = RemoteFolder:WaitForChild("KillAll")
+local JailAllEvent = RemoteFolder:WaitForChild("JailAll")
+
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "AdminGUI"
+
+local function createButton(text, pos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 150, 0, 30)
+    btn.Position = pos
+    btn.Text = text
+    btn.Parent = screenGui
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- Input box for player name
+local function createInputBox(placeholder, pos)
+    local input = Instance.new("TextBox")
+    input.Size = UDim2.new(0, 150, 0, 30)
+    input.Position = pos
+    input.PlaceholderText = placeholder
+    input.Parent = screenGui
+    input.ClearTextOnFocus = false
+    return input
+end
+
+local targetNameInput = createInputBox("Player name", UDim2.new(0, 10, 0, 10))
+local itemIdInput = createInputBox("Item ID (ServerStorage name)", UDim2.new(0, 10, 0, 50))
+
+createButton("Shutdown Server", UDim2.new(0, 170, 0, 10), function()
+    ShutdownServerEvent:FireServer()
+end)
+
+createButton("Kick Player", UDim2.new(0, 170, 0, 50), function()
+    KickPlayerEvent:FireServer(targetNameInput.Text)
+end)
+
+createButton("Ban Player", UDim2.new(0, 170, 0, 90), function()
+    BanPlayerEvent:FireServer(targetNameInput.Text)
+end)
+
+createButton("Kill Player", UDim2.new(0, 170, 0, 130), function()
+    KillPlayerEvent:FireServer(targetNameInput.Text)
+end)
+
+createButton("Jail Player", UDim2.new(0, 170, 0, 170), function()
+    JailPlayerEvent:FireServer(targetNameInput.Text)
+end)
+
+createButton("Give Item", UDim2.new(0, 170, 0, 210), function()
+    GiveItemEvent:FireServer(itemIdInput.Text)
+end)
+
+createButton("Kick All", UDim2.new(0, 10, 0, 250), function()
+    KickAllEvent:FireServer()
+end)
+
+createButton("Ban All", UDim2.new(0, 170, 0, 250), function()
+    BanAllEvent:FireServer()
+end)
+
+createButton("Kill All", UDim2.new(0, 10, 0, 290), function()
+    KillAllEvent:FireServer()
+end)
+
+createButton("Jail All", UDim2.new(0, 170, 0, 290), function()
+    JailAllEvent:FireServer()
+end)
