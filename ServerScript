@@ -1,0 +1,171 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Create RemoteEvents for client-server communication
+local RemoteFolder = Instance.new("Folder", ReplicatedStorage)
+RemoteFolder.Name = "AdminRemotes"
+
+local ShutdownServerEvent = Instance.new("RemoteEvent", RemoteFolder)
+ShutdownServerEvent.Name = "ShutdownServer"
+
+local KickPlayerEvent = Instance.new("RemoteEvent", RemoteFolder)
+KickPlayerEvent.Name = "KickPlayer"
+
+local BanPlayerEvent = Instance.new("RemoteEvent", RemoteFolder)
+BanPlayerEvent.Name = "BanPlayer"
+
+local KillPlayerEvent = Instance.new("RemoteEvent", RemoteFolder)
+KillPlayerEvent.Name = "KillPlayer"
+
+local JailPlayerEvent = Instance.new("RemoteEvent", RemoteFolder)
+JailPlayerEvent.Name = "JailPlayer"
+
+local GiveItemEvent = Instance.new("RemoteEvent", RemoteFolder)
+GiveItemEvent.Name = "GiveItem"
+
+-- Simple admin list
+local Admins = {
+    ["YourUsernameHere"] = true
+}
+
+-- Ban list
+local BanList = {}
+
+-- Jail position (example)
+local JailPosition = Vector3.new(0, 50, 0) -- Change to your jail area
+
+-- Utility: Check if player is admin
+local function isAdmin(player)
+    return Admins[player.Name] == true
+end
+
+-- Shutdown server (kick everyone except admins)
+ShutdownServerEvent.OnServerEvent:Connect(function(player)
+    if not isAdmin(player) then return end
+    for _, plr in pairs(Players:GetPlayers()) do
+        if not isAdmin(plr) then
+            plr:Kick("Server is shutting down.")
+        end
+    end
+end)
+
+-- Kick player
+KickPlayerEvent.OnServerEvent:Connect(function(player, targetPlayerName)
+    if not isAdmin(player) then return end
+    local targetPlayer = Players:FindFirstChild(targetPlayerName)
+    if targetPlayer then
+        targetPlayer:Kick("You were kicked by an admin.")
+    end
+end)
+
+-- Ban player
+BanPlayerEvent.OnServerEvent:Connect(function(player, targetPlayerName)
+    if not isAdmin(player) then return end
+    local targetPlayer = Players:FindFirstChild(targetPlayerName)
+    if targetPlayer then
+        BanList[targetPlayer.Name] = true
+        targetPlayer:Kick("You have been banned.")
+    end
+end)
+
+-- On player added, check ban list
+Players.PlayerAdded:Connect(function(player)
+    if BanList[player.Name] then
+        player:Kick("You are banned from this server.")
+    end
+end)
+
+-- Kill player
+KillPlayerEvent.OnServerEvent:Connect(function(player, targetPlayerName)
+    if not isAdmin(player) then return end
+    local targetPlayer = Players:FindFirstChild(targetPlayerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
+        targetPlayer.Character.Humanoid.Health = 0
+    end
+end)
+
+-- Jail player (teleport to jail)
+JailPlayerEvent.OnServerEvent:Connect(function(player, targetPlayerName)
+    if not isAdmin(player) then return end
+    local targetPlayer = Players:FindFirstChild(targetPlayerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        targetPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(JailPosition)
+    end
+end)
+
+-- Give item by ID (tool must be in ServerStorage)
+GiveItemEvent.OnServerEvent:Connect(function(player, itemId)
+    if not isAdmin(player) then return end
+    local ServerStorage = game:GetService("ServerStorage")
+    local item = ServerStorage:FindFirstChild(tostring(itemId))
+    if item then
+        local clone = item:Clone()
+        clone.Parent = player.Backpack
+    end
+end)
+
+-- Kick all non-admin players
+function KickAll()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if not isAdmin(plr) then
+            plr:Kick("Kicked by admin (Kick All).")
+        end
+    end
+end
+
+-- Ban all non-admin players
+function BanAll()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if not isAdmin(plr) then
+            BanList[plr.Name] = true
+            plr:Kick("Banned by admin (Ban All).")
+        end
+    end
+end
+
+-- Kill all non-admin players
+function KillAll()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if not isAdmin(plr) and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+            plr.Character.Humanoid.Health = 0
+        end
+    end
+end
+
+-- Jail all non-admin players
+function JailAll()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if not isAdmin(plr) and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            plr.Character.HumanoidRootPart.CFrame = CFrame.new(JailPosition)
+        end
+    end
+end
+
+-- Remote functions for KickAll, BanAll, KillAll, JailAll
+local KickAllEvent = Instance.new("RemoteEvent", RemoteFolder)
+KickAllEvent.Name = "KickAll"
+KickAllEvent.OnServerEvent:Connect(function(player)
+    if not isAdmin(player) then return end
+    KickAll()
+end)
+
+local BanAllEvent = Instance.new("RemoteEvent", RemoteFolder)
+BanAllEvent.Name = "BanAll"
+BanAllEvent.OnServerEvent:Connect(function(player)
+    if not isAdmin(player) then return end
+    BanAll()
+end)
+
+local KillAllEvent = Instance.new("RemoteEvent", RemoteFolder)
+KillAllEvent.Name = "KillAll"
+KillAllEvent.OnServerEvent:Connect(function(player)
+    if not isAdmin(player) then return end
+    KillAll()
+end)
+
+local JailAllEvent = Instance.new("RemoteEvent", RemoteFolder)
+JailAllEvent.Name = "JailAll"
+JailAllEvent.OnServerEvent:Connect(function(player)
+    if not isAdmin(player) then return end
+    JailAll()
+end)
